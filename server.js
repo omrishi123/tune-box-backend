@@ -12,15 +12,22 @@ app.use((req, res, next) => {
   next();
 });
 
-// Update CORS options
-const corsOptions = {
-  origin: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true
-};
+const allowedOrigins = [
+  'https://tune-box-frontend.vercel.app',
+  'http://localhost:3000',
+  'http://192.168.31.199:3000'
+];
 
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
