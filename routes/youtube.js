@@ -27,13 +27,12 @@ router.get('/search', async (req, res) => {
         key: process.env.YOUTUBE_API_KEY,
         q: query + ' song',
         type: 'video',
-        videoCategoryId: '10',
-        safeSearch: 'none'
+        videoCategoryId: '10'
       }
     });
 
     if (!response.data?.items) {
-      return res.status(404).json([]);
+      return res.status(200).json([]);  // Return empty array instead of 404
     }
 
     const videos = response.data.items.map(item => ({
@@ -45,8 +44,8 @@ router.get('/search', async (req, res) => {
 
     res.json(videos);
   } catch (error) {
-    console.error('YouTube API Error:', error.response?.data || error);
-    res.status(500).json([]);
+    console.error('YouTube API Error:', error.response?.data || error.message);
+    res.status(200).json([]); // Return empty array instead of 500
   }
 });
 
@@ -146,4 +145,5 @@ router.get('/stream/:videoId', async (req, res) => {
   }
 });
 
+module.exports = router;
 module.exports = router;
