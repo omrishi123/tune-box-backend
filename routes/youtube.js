@@ -25,15 +25,15 @@ router.get('/search', async (req, res) => {
         part: 'snippet',
         maxResults: 20,
         key: process.env.YOUTUBE_API_KEY,
-        q: query,
+        q: query + ' song',
         type: 'video',
         videoCategoryId: '10',
         safeSearch: 'none'
       }
     });
 
-    if (!response.data.items) {
-      return res.status(404).json({ error: 'No results found' });
+    if (!response.data?.items) {
+      return res.status(404).json([]);
     }
 
     const videos = response.data.items.map(item => ({
@@ -45,11 +45,8 @@ router.get('/search', async (req, res) => {
 
     res.json(videos);
   } catch (error) {
-    console.error('YouTube API Error:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch search results',
-      details: error.response?.data || error.message 
-    });
+    console.error('YouTube API Error:', error.response?.data || error);
+    res.status(500).json([]);
   }
 });
 
