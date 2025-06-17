@@ -10,7 +10,6 @@ const allowedOrigins = [
   'http://192.168.31.199:3000'
 ];
 
-// Simplified CORS configuration
 app.use(cors({
   origin: allowedOrigins,
   credentials: true,
@@ -28,21 +27,20 @@ app.use('/api/playlists', require('./routes/playlists'));
 
 // --- Root Route (Optional, for testing if server is running) ---
 app.get('/', (req, res) => {
-  res.send('TuneBox Backend API is running!');
+  res.json({ status: 'ok', message: 'TuneBox Backend API is running!' });
 });
 
-// --- MongoDB Connection and Server Start ---
-const PORT = process.env.PORT || 5000;
-
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('Connected to MongoDB');
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  })
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-    // Exit the process if MongoDB connection fails
-    process.exit(1);
+// --- Error Handling Middleware ---
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ 
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
   });
+});
+
+// --- Server Start ---
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
