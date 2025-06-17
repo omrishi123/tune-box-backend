@@ -16,45 +16,78 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 router.get('/search', async (req, res) => {
   try {
     const { query } = req.query;
+    
+    // Validate query parameter
     if (!query) {
-      return res.status(400).json({ error: 'Query parameter is required' });
+      return res.status(400).json({ 
+        error: 'Query parameter is required',
+        code: 'MISSING_QUERY'
+      });
     }
 
-    // Check if API key exists
+    // Validate API key
     if (!process.env.YOUTUBE_API_KEY) {
-      console.error('YouTube API key is missing');
-      return res.status(500).json({ error: 'Server configuration error' });
+      console.error('YouTube API key is missing in environment variables');
+      return res.status(500).json({ 
+        error: 'YouTube API key is not configured',
+        code: 'MISSING_API_KEY'
+      });
     }
 
-    const response = await axios.get(`https://www.googleapis.com/youtube/v3/search`, {
-      params: {
-        part: 'snippet',
-        maxResults: 20,
-        key: process.env.YOUTUBE_API_KEY,
-        q: query + ' song',
-        type: 'video',
-        videoCategoryId: '10'
+    try {
+      const response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+        params: {
+          part: 'snippet',
+          maxResults: 20,
+          key: process.env.YOUTUBE_API_KEY,
+          q: query + ' song',
+          type: 'video',
+          videoCategoryId: '10'
+        },
+        timeout: 10000 // 10 second timeout
+      });
+
+      if (!response.data?.items) {
+        console.log('Empty response from YouTube API');
+        return res.status(200).json([]);
       }
+
+      const videos = response.data.items.map(item => ({
+        id: item.id.videoId,
+        title: item.snippet.title,
+        thumbnail: item.snippet.thumbnails.medium.url,
+        artist: item.snippet.channelTitle
+      }));
+
+      return res.json(videos);
+
+    } catch (apiError) {
+      console.error('YouTube API Error:', {
+        status: apiError.response?.status,
+        data: apiError.response?.data,
+        message: apiError.message
+      });
+
+      if (apiError.response?.status === 403) {
+        return res.status(403).json({
+          error: 'YouTube API quota exceeded or invalid key',
+          code: 'API_QUOTA_ERROR'
+        });
+      }
+
+      throw apiError; // Let the outer catch handle other errors
+    }
+
+  } catch (error) {
+    console.error('Search endpoint error:', {
+      message: error.message,
+      stack: error.stack
     });
 
-    if (!response.data?.items) {
-      console.log('No items in YouTube response');
-      return res.status(200).json([]);
-    }
-
-    const videos = response.data.items.map(item => ({
-      id: item.id.videoId,
-      title: item.snippet.title,
-      thumbnail: item.snippet.thumbnails.medium.url,
-      artist: item.snippet.channelTitle
-    }));
-
-    res.json(videos);
-  } catch (error) {
-    console.error('YouTube API Error:', error.response?.data || error.message);
-    res.status(500).json({ 
-      error: 'Failed to fetch search results',
-      details: error.response?.data || error.message
+    return res.status(500).json({
+      error: 'Failed to search videos',
+      code: 'SEARCH_ERROR',
+      message: error.message
     });
   }
 });
