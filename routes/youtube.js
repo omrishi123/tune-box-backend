@@ -20,18 +20,15 @@ router.get('/search', async (req, res) => {
       return res.status(400).json({ error: 'Query parameter is required' });
     }
 
-    if (!process.env.YOUTUBE_API_KEY) {
-      throw new Error('YouTube API key is not configured');
-    }
-
     const response = await axios.get(`https://www.googleapis.com/youtube/v3/search`, {
       params: {
         part: 'snippet',
         maxResults: 20,
         key: process.env.YOUTUBE_API_KEY,
-        q: decodeURIComponent(query),
+        q: query,
         type: 'video',
-        videoCategoryId: '10'
+        videoCategoryId: '10',
+        safeSearch: 'none'
       }
     });
 
@@ -48,15 +45,10 @@ router.get('/search', async (req, res) => {
 
     res.json(videos);
   } catch (error) {
-    console.error('YouTube API Error:', error.response?.data || error.message);
-    
-    if (error.response?.status === 403) {
-      return res.status(403).json({ error: 'YouTube API quota exceeded or invalid key' });
-    }
-    
+    console.error('YouTube API Error:', error);
     res.status(500).json({ 
       error: 'Failed to fetch search results',
-      details: error.response?.data?.error?.message || error.message
+      details: error.response?.data || error.message 
     });
   }
 });
