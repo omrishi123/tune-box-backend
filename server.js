@@ -1,16 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
 require('dotenv').config();
 
 const app = express();
-
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, PUT, DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization, X-Requested-With');
-  next();
-});
 
 const allowedOrigins = [
   'https://tune-box-frontend.vercel.app',
@@ -20,13 +12,15 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function(origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error('CORS not allowed'));
     }
   },
-  credentials: true
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(express.json());
 
@@ -39,6 +33,12 @@ const PORT = process.env.PORT || 5000;
 
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
+    console.log('Connected to MongoDB');
+    app.listen(PORT, process.env.HOST, () => {
+      console.log(`Server running on http://${process.env.HOST}:${process.env.PORT}`);
+    });
+  })
+  .catch(err => console.error('MongoDB connection error:', err));
     console.log('Connected to MongoDB');
     app.listen(PORT, process.env.HOST, () => {
       console.log(`Server running on http://${process.env.HOST}:${process.env.PORT}`);
