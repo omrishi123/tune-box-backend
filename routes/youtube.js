@@ -32,7 +32,7 @@ router.get('/search', async (req, res) => {
     });
 
     if (!response.data?.items) {
-      return res.status(200).json([]);  // Return empty array instead of 404
+      return res.status(200).json([]);
     }
 
     const videos = response.data.items.map(item => ({
@@ -44,8 +44,8 @@ router.get('/search', async (req, res) => {
 
     res.json(videos);
   } catch (error) {
-    console.error('YouTube API Error:', error.response?.data || error.message);
-    res.status(200).json([]); // Return empty array instead of 500
+    console.error('YouTube API Error:', error);
+    res.status(200).json([]); // Return empty array instead of error
   }
 });
 
