@@ -20,6 +20,12 @@ router.get('/search', async (req, res) => {
       return res.status(400).json({ error: 'Query parameter is required' });
     }
 
+    // Check if API key exists
+    if (!process.env.YOUTUBE_API_KEY) {
+      console.error('YouTube API key is missing');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+
     const response = await axios.get(`https://www.googleapis.com/youtube/v3/search`, {
       params: {
         part: 'snippet',
@@ -32,6 +38,7 @@ router.get('/search', async (req, res) => {
     });
 
     if (!response.data?.items) {
+      console.log('No items in YouTube response');
       return res.status(200).json([]);
     }
 
@@ -44,8 +51,11 @@ router.get('/search', async (req, res) => {
 
     res.json(videos);
   } catch (error) {
-    console.error('YouTube API Error:', error);
-    res.status(200).json([]); // Return empty array instead of error
+    console.error('YouTube API Error:', error.response?.data || error.message);
+    res.status(500).json({ 
+      error: 'Failed to fetch search results',
+      details: error.response?.data || error.message
+    });
   }
 });
 
@@ -145,5 +155,4 @@ router.get('/stream/:videoId', async (req, res) => {
   }
 });
 
-module.exports = router;
 module.exports = router;
