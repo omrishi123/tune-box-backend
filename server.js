@@ -5,16 +5,14 @@ require('dotenv').config();
 const app = express();
 
 const allowedOrigins = [
-  'https://tune-box-frontend.vercel.app',
   'http://localhost:3000',
-  'http://192.168.31.199:3000'
+  'https://tune-box-frontend.vercel.app'
 ];
 
 app.use(cors({
   origin: allowedOrigins,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
 
 app.use(express.json());
