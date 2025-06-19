@@ -4,25 +4,16 @@ require('dotenv').config();
 
 const app = express();
 
-app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://tune-box-frontend.vercel.app'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: [
-    'Content-Type',
-    'Authorization',
-    'Origin',
-    'Accept',
-    'X-Requested-With'
-  ],
-  exposedHeaders: ['Content-Range', 'X-Content-Range']
-}));
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://tune-box-frontend.vercel.app'
+];
 
-// Add preflight handling
-app.options('*', cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
 
 app.use(express.json());
 
