@@ -27,7 +27,7 @@ router.get('/search', async (req, res) => {
 
     // Validate API key
     if (!process.env.YOUTUBE_API_KEY) {
-      console.error('YouTube API key is missing in environment variables');
+      console.error('YouTube API key is missing in env variables');
       return res.status(500).json({ 
         error: 'YouTube API key is not configured',
         code: 'MISSING_API_KEY'
